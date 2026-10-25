@@ -63,9 +63,7 @@ def clf_scores(y_true, y_pred, average="binary"):
 
 # ---------------------------------------------------------------- experiment 10
 def experiment_10():
-    header(10, "Logistic Regression vs Decision Tree - Adult Income")
 
-    step("1. Load the dataset (OpenML 'adult')")
     df = fetch_openml("adult", version=2, as_frame=True).frame
     # ---- CSV alternative (adult.csv with '?' for missing and target column 'income'): ----
     # df = pd.read_csv("adult.csv").replace("?", np.nan).rename(columns={"income": "class"})
@@ -73,7 +71,6 @@ def experiment_10():
     X = df.drop(columns=["class", "fnlwgt"], errors="ignore")
     print("Shape:", X.shape, "| share earning >50K:", round(y.mean(), 3))
 
-    step("2. Preprocess: impute missing, one-hot encode categories, scale numbers")
     num_cols = X.select_dtypes(include="number").columns.tolist()
     cat_cols = [c for c in X.columns if c not in num_cols]
     X[cat_cols] = X[cat_cols].astype(object)
@@ -86,7 +83,6 @@ def experiment_10():
     names = pre.get_feature_names_out()
     print("Features after encoding:", Xtr.shape[1])
 
-    step("3. Train the models")
     models = {"Logistic Regression": LogisticRegression(max_iter=2000),
               "Decision Tree (depth 5)": DecisionTreeClassifier(max_depth=5, random_state=RANDOM_STATE),
               "Decision Tree (unlimited)": DecisionTreeClassifier(random_state=RANDOM_STATE)}
@@ -95,11 +91,9 @@ def experiment_10():
         m.fit(Xtr, y_train)
         rows.append({"Model": name, **clf_scores(y_test, m.predict(Xte)), "Train acc": m.score(Xtr, y_train)})
 
-    step("4. Compare accuracy, precision, recall, F1")
     table = pd.DataFrame(rows)
     print(table.round(4).to_string(index=False))
 
-    step("5. Interpretability")
     lr, dt = models["Logistic Regression"], models["Decision Tree (depth 5)"]
     coef = pd.Series(lr.coef_[0], index=names).sort_values()
     print("\nLogistic regression - strongest features pushing towards '<=50K' (negative):")
@@ -118,14 +112,6 @@ def experiment_10():
               filled=True, fontsize=7, ax=ax[1])
     ax[1].set_title("Decision tree (top 2 levels)")
     save_show("exp10_logreg_vs_tree.png")
-
-    explain([
-        "Logistic regression: one weight per feature -> a linear decision boundary; coefficients show direction and strength.",
-        "Decision tree: a set of IF-THEN rules that can model non-linear interactions; easy to explain to non-experts.",
-        "The unlimited tree has ~100% TRAIN accuracy but lower TEST accuracy -> overfitting; depth limiting fixes it.",
-        "Dataset is imbalanced (~24% earn >50K): look at recall/F1 of the positive class, not only accuracy.",
-        "Trade-off: logistic regression gives probabilities and is stable; trees are more transparent but less stable.",
-    ])
 
 
 if __name__ == "__main__":

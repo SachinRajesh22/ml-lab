@@ -66,9 +66,7 @@ def avg_loglik(theta, test_counts):
 
 
 def experiment_5():
-    header(5, "MLE and MAP for a Multinomial distribution - 20 Newsgroups")
 
-    step("1. Load the dataset (4 categories, headers/footers/quotes removed)")
     cats = ["sci.space", "rec.sport.hockey", "comp.graphics", "talk.politics.mideast"]
     kw = dict(categories=cats, remove=("headers", "footers", "quotes"))
     train, test = fetch_20newsgroups(subset="train", **kw), fetch_20newsgroups(subset="test", **kw)
@@ -76,7 +74,6 @@ def experiment_5():
     # df = pd.read_csv("newsgroups.csv"); train_texts, train_labels = df["text"], df["label"]
     print("Train docs:", len(train.data), "| test docs:", len(test.data))
 
-    step("2. Preprocess: bag-of-words counts (3000 most frequent non-stop-words)")
     vec = CountVectorizer(stop_words="english", max_features=3000)
     X_all = vec.fit_transform(train.data)
     vocab = np.array(vec.get_feature_names_out())
@@ -90,10 +87,8 @@ def experiment_5():
     print(f"Topic = sci.space | vocabulary V = {V} | training words N = {int(counts.sum())} | "
           f"words never seen in training = {int(np.sum(counts == 0))}")
 
-    step("3. MLE of the multinomial parameters theta (word probabilities)")
     theta_mle = mle_multinomial(counts)
 
-    step("4. MAP with different Dirichlet priors")
     priors = [("MLE (alpha=1)", 1.0),
               ("MAP uniform alpha=1.1", 1.1),
               ("MAP uniform alpha=2", 2.0),
@@ -109,7 +104,6 @@ def experiment_5():
                      "Test log-lik / word": ll,
                      "Perplexity": np.exp(-ll) if np.isfinite(ll) else np.inf})
 
-    step("5. Compare results")
     print(pd.DataFrame(rows).round(3).to_string(index=False))
     unseen = np.where((counts == 0) & (test_counts > 0))[0]
     top_unseen = unseen[np.argsort(-test_counts[unseen])[:8]]
@@ -133,15 +127,6 @@ def experiment_5():
     ax[1].legend(fontsize=8)
     save_show("exp5_mle_map_multinomial.png")
 
-    explain([
-        "A topic's words follow a MULTINOMIAL distribution with parameters theta (one probability per word).",
-        "MLE:  theta_i = count_i / total_words  -> a word never seen in training gets probability 0.",
-        "Dirichlet is the conjugate prior of the multinomial; its alpha acts like PSEUDO-COUNTS added to the data.",
-        "MAP:  theta_i = (n_i + alpha_i - 1) / (N + sum(alpha) - V).  alpha = 1 is a flat prior = same as MLE.",
-        "Larger alpha -> more smoothing (rare words boosted, frequent words reduced); too large washes out the data.",
-        "An informative prior (global word frequencies) smooths in a smarter way than a uniform prior.",
-        "Naive Bayes 'Laplace smoothing' is exactly this idea.",
-    ])
 
 
 if __name__ == "__main__":

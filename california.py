@@ -68,16 +68,12 @@ def linreg_gradient_descent(Xb, y, lr=0.1, epochs=500):
 
 
 def experiment_1():
-    header(1, "Linear Regression with ONE variable - California Housing")
-
-    step("1. Load the dataset (sklearn built-in downloader)")
     df = fetch_california_housing(as_frame=True).frame
     # ---- CSV alternative: needs columns 'AveRooms' and 'MedHouseVal' ----
     # df = pd.read_csv("housing.csv")
     print("Shape:", df.shape)
     print(df.head())
 
-    step("2. Preprocess: pick 1 feature, remove outliers, split, standardise")
     print("Missing values in dataset:", int(df.isnull().sum().sum()))
     df = df[["AveRooms", "MedHouseVal"]]            # feature = avg rooms, target = price (x $100k)
     lo, hi = df["AveRooms"].quantile([0.01, 0.99])  # AveRooms has crazy outliers (e.g. 141 rooms)
@@ -89,15 +85,12 @@ def experiment_1():
     add_bias = lambda Z: np.c_[np.ones(len(Z)), (Z - mu) / sigma]
     Xb_train, Xb_test = add_bias(X_train), add_bias(X_test)
 
-    step("3a. Train with GRADIENT DESCENT")
     theta_gd, history = linreg_gradient_descent(Xb_train, y_train, lr=0.1, epochs=500)
     print("theta (intercept, slope) =", np.round(theta_gd, 4), "| final cost =", round(history[-1], 4))
 
-    step("3b. Train with the NORMAL EQUATION   theta = (X^T X)^-1 X^T y")
     theta_ne = np.linalg.pinv(Xb_train.T @ Xb_train) @ Xb_train.T @ y_train
     print("theta (intercept, slope) =", np.round(theta_ne, 4))
 
-    step("4. Evaluate on the TEST set")
     sk = LinearRegression().fit(X_train, y_train)    # library model, used only as a cross-check
     rows = []
     for name, pred in [("Gradient Descent", Xb_test @ theta_gd),
@@ -110,7 +103,6 @@ def experiment_1():
     intercept = theta_ne[0] - theta_ne[1] * mu / sigma
     print(f"\nFitted line in ORIGINAL units:  price = {intercept:.4f} + {slope:.4f} * AveRooms")
 
-    step("5. Visualise")
     fig, ax = plt.subplots(1, 2, figsize=(12, 4.5))
     ax[0].scatter(X_test, y_test, s=6, alpha=0.3, label="test data")
     xs = np.linspace(X.min(), X.max(), 100)
@@ -120,15 +112,6 @@ def experiment_1():
     ax[1].plot(history)
     ax[1].set(xlabel="Epoch", ylabel="Cost J", title="Gradient descent convergence")
     save_show("exp1_linear_regression.png")
-
-    explain([
-        "Linear regression finds the line y = b0 + b1*x that minimises the mean squared error.",
-        "Gradient descent = iterative (move against the gradient); normal equation = closed form, one step.",
-        "Both reach (almost) the same theta, because the cost surface is a convex bowl with one minimum.",
-        "Normal equation is slow for many features (matrix inverse ~ O(n^3)); gradient descent scales better.",
-        "MSE = average squared error (lower is better). R2 = fraction of variance explained (1 is perfect).",
-        "A low R2 here is expected: ONE feature (rooms) cannot explain house prices well.",
-    ])
 
 
 if __name__ == "__main__":

@@ -59,9 +59,7 @@ def plot_svm(ax, model, X, y, title):
 
 
 def experiment_11():
-    header(11, "Linear SVM - Iris (Setosa vs Non-Setosa)")
 
-    step("1. Load the dataset (built into sklearn)")
     iris = load_iris()
     # ---- CSV alternative (columns: petal_length, petal_width, species): ----
     # df = pd.read_csv("iris.csv"); X = df[["petal_length", "petal_width"]].values
@@ -70,10 +68,8 @@ def experiment_11():
     y = (iris.target != 0).astype(int)           # 0 = Setosa, 1 = Non-Setosa (Versicolor + Virginica)
     print("Samples:", len(X), "| Setosa:", int((y == 0).sum()), "| Non-Setosa:", int((y == 1).sum()))
 
-    step("2. Preprocess: train/test split (features already in cm, same scale)")
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, stratify=y, random_state=RANDOM_STATE)
 
-    step("3. Train a linear SVM: hard-ish margin (C=1000) and soft margin (C=0.05)")
     fig, ax = plt.subplots(1, 2, figsize=(13, 5))
     for a, C in zip(ax, [1000, 0.05]):
         svm = SVC(kernel="linear", C=C).fit(X_train, y_train)
@@ -85,17 +81,8 @@ def experiment_11():
         print(f"  support vectors: {len(svm.support_vectors_)} | test accuracy = {svm.score(X_test, y_test):.4f}")
         plot_svm(a, svm, X_train, y_train, f"Linear SVM, C={C}  (margin width {2 / np.linalg.norm(w):.2f})")
 
-    step("4. Visualise decision boundary (solid) and margins (dashed)")
     save_show("exp11_linear_svm.png")
 
-    explain([
-        "SVM chooses the separating line with the MAXIMUM MARGIN = largest gap between the two classes.",
-        "Margin width = 2 / ||w||, so maximising the margin = minimising ||w||.",
-        "Only the SUPPORT VECTORS (points on / inside the margin) determine the line; other points can move freely.",
-        "C controls the trade-off: large C = few margin violations but narrow margin; small C = wide margin, more tolerance.",
-        "Setosa is linearly separable, so a straight line separates it perfectly (100% test accuracy).",
-        "A wider margin generally means better generalisation to new data.",
-    ])
 
 
 if __name__ == "__main__":

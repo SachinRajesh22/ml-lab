@@ -64,21 +64,17 @@ def load_wine_quality():
 
 
 def experiment_13():
-    header(13, "Multilayer Feed-Forward Network (MLP) - Wine Quality (red)")
 
-    step("1. Load the dataset")
     X, y = load_wine_quality()
     # ---- CSV alternative (UCI winequality-red.csv is separated by semicolons): ----
     # df = pd.read_csv("winequality-red.csv", sep=";"); X, y = df.drop(columns="quality"), df["quality"]
     print("Samples:", len(X), "| features:", X.shape[1])
     print("Quality score counts:\n", y.value_counts().sort_index().to_string())
 
-    step("2. Preprocess: stratified split + standardise")
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, stratify=y, random_state=RANDOM_STATE)
     scaler = StandardScaler().fit(X_train)
     Xtr, Xte = scaler.transform(X_train), scaler.transform(X_test)
 
-    step("3. Train MLPs with different numbers of hidden layers / neurons")
     archs = {"(4,)": (4,), "(16,)": (16,), "(64,)": (64,), "(16,16)": (16, 16),
              "(64,32)": (64, 32), "(128,64,32)": (128, 64, 32)}
     rows, curves = [], {}
@@ -91,7 +87,6 @@ def experiment_13():
                      "Test acc": mlp.score(Xte, y_test), "Epochs": mlp.n_iter_, "Time (s)": time.time() - t0})
         curves[name] = mlp.loss_curve_
 
-    step("4. Compare the architectures")
     table = pd.DataFrame(rows)
     print(table.round(4).to_string(index=False))
 
@@ -109,14 +104,6 @@ def experiment_13():
     ax[1].legend(fontsize=8)
     save_show("exp13_mlp_architectures.png")
 
-    explain([
-        "An MLP stacks layers of neurons: output = activation(W x + b), trained by back-propagation + gradient descent (Adam).",
-        "Too FEW neurons/layers -> underfitting (low train AND test accuracy).",
-        "Too MANY -> train accuracy keeps rising but test accuracy stalls/drops (overfitting) and training is slower.",
-        "Wine quality scores are imbalanced (mostly 5 and 6), so accuracy plateaus around 60-65% for any architecture.",
-        "Remedies for overfitting: fewer parameters, early stopping, L2 penalty (alpha), more data, dropout.",
-        "Standardising the inputs is essential for neural networks.",
-    ])
 
 
 if __name__ == "__main__":

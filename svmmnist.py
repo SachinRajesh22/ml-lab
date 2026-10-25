@@ -68,15 +68,12 @@ def load_image_dataset(openml_name):
 
 # ---------------------------------------------------------------- experiment 12
 def experiment_12():
-    header(12, "SVM with Linear, Polynomial and RBF kernels - Fashion MNIST")
 
-    step("1. Load and preprocess (pixels scaled to 0-1, random subset for speed)")
     X_train, y_train, X_test, y_test = load_image_dataset("Fashion-MNIST")
     X_train, y_train = subsample(X_train, y_train, N_TRAIN_SVM)
     X_test, y_test = subsample(X_test, y_test, N_TEST_SVM, seed=1)
     print("Train:", X_train.shape, "| test:", X_test.shape, "(lower N_TRAIN_SVM at the top of the file if too slow)")
 
-    step("2. Train an SVM with each kernel")
     kernels = {"Linear": SVC(kernel="linear", C=1.0),
                "Polynomial (degree 3)": SVC(kernel="poly", degree=3, C=1.0, gamma="scale"),
                "RBF": SVC(kernel="rbf", C=1.0, gamma="scale")}
@@ -93,7 +90,6 @@ def experiment_12():
                      "Support vectors": int(model.n_support_.sum())})
         print(f"  finished {name}")
 
-    step("3. Compare the kernels")
     table = pd.DataFrame(rows)
     print(table.round(4).to_string(index=False))
 
@@ -103,14 +99,6 @@ def experiment_12():
     table.plot.bar(x="Kernel", y="Support vectors", ax=ax[2], legend=False, rot=15, color="green", title="Support vectors")
     save_show("exp12_svm_kernels.png")
 
-    explain([
-        "A KERNEL computes similarity between two points as if they were mapped to a higher-dimensional space (kernel trick).",
-        "LINEAR  K = x.y: fast, simple, no tuning; limited to linear boundaries.",
-        "POLYNOMIAL  K = (gamma x.y + r)^d: models feature interactions; extra hyper-parameters (degree), can overfit.",
-        "RBF  K = exp(-gamma ||x-y||^2): flexible non-linear boundary, usually the best default for images; needs C and gamma tuning.",
-        "Kernel SVMs scale badly with number of samples (roughly O(n^2)-O(n^3)) -> we used a subset.",
-        "More support vectors = more complex boundary and slower prediction.",
-    ])
 
 
 if __name__ == "__main__":

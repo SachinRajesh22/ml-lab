@@ -96,9 +96,7 @@ class KNNScratch:
 
 
 def experiment_8():
-    header(8, "K-Nearest Neighbours - Fashion MNIST")
 
-    step("1. Load and preprocess (pixels scaled to 0-1, random subset for speed)")
     X_train, y_train, X_test, y_test = load_image_dataset("Fashion-MNIST")
     X_train, y_train = subsample(X_train, y_train, N_TRAIN_KNN)
     X_test, y_test = subsample(X_test, y_test, N_TEST_KNN, seed=1)
@@ -111,7 +109,6 @@ def experiment_8():
         ax[c].axis("off")
     save_show("exp8_samples.png")
 
-    step("2. KNN for different K (own implementation)")
     ks = [1, 3, 5, 7, 9, 15, 25, 51]
     rows = []
     for k in ks:
@@ -122,7 +119,6 @@ def experiment_8():
     table = pd.DataFrame(rows)
     print(table.round(4).to_string(index=False))
 
-    step("3. Cross-check against sklearn's KNeighborsClassifier (K=5)")
     sk_acc = KNeighborsClassifier(n_neighbors=5).fit(X_train, y_train).score(X_test, y_test)
     print(f"sklearn accuracy = {sk_acc:.4f}   |   own implementation = {table.loc[table.K == 5, 'Accuracy'].values[0]:.4f}")
 
@@ -134,13 +130,6 @@ def experiment_8():
     save_show("exp8_knn_k_values.png")
     print(f"\nBest K = {int(table.loc[table['Accuracy'].idxmax(), 'K'])}")
 
-    explain([
-        "KNN has NO training phase; all the work happens at prediction time (distance to every training image).",
-        "Small K (e.g. 1): very flexible, low bias but noisy -> OVERFITS. Large K: smooth, but blurs class borders -> UNDERFITS.",
-        "The best K is usually small-to-moderate (a few); choose it with a validation set / cross-validation.",
-        "Prediction cost ~ (training size x number of features) for EVERY query; it barely depends on K.",
-        "KNN needs feature scaling and suffers in very high dimensions ('curse of dimensionality').",
-    ])
 
 
 if __name__ == "__main__":

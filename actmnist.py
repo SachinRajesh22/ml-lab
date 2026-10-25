@@ -67,15 +67,12 @@ def load_image_dataset(openml_name):
 
 # ---------------------------------------------------------------- experiment 14
 def experiment_14():
-    header(14, "Activation Functions: Sigmoid vs ReLU vs Tanh - MNIST")
 
-    step("1. Load and preprocess MNIST (pixels scaled to 0-1, random subset for speed)")
     X_train, y_train, X_test, y_test = load_image_dataset("mnist_784")
     X_train, y_train = subsample(X_train, y_train, N_TRAIN_NN)
     X_test, y_test = subsample(X_test, y_test, N_TEST_NN, seed=1)
     print("Train:", X_train.shape, "| test:", X_test.shape)
 
-    step("2. Train the same network (1 hidden layer, 64 neurons) with each activation, 25 epochs")
     activations = {"Sigmoid": "logistic", "ReLU": "relu", "Tanh": "tanh"}
     epochs = 25
     history, rows = {}, []
@@ -95,7 +92,6 @@ def experiment_14():
                      "Training time (s)": t_total})
         print(f"  finished {name}")
 
-    step("3. Compare training time, convergence and accuracy")
     print(pd.DataFrame(rows).round(4).to_string(index=False))
 
     fig, ax = plt.subplots(1, 3, figsize=(17, 4.5))
@@ -109,15 +105,6 @@ def experiment_14():
     pd.DataFrame(rows).plot.bar(x="Activation", y="Training time (s)", ax=ax[2], legend=False, rot=0,
                                 color="darkorange", title="Training time (s)")
     save_show("exp14_activations.png")
-
-    explain([
-        "SIGMOID  1/(1+e^-x): output in (0,1); its gradient is tiny for large |x| -> VANISHING GRADIENT, slow learning in deep nets.",
-        "TANH  (e^x-e^-x)/(e^x+e^-x): output in (-1,1), ZERO-CENTRED, so usually trains faster than sigmoid, but also saturates.",
-        "RELU  max(0,x): cheap to compute, gradient is 1 for x>0 -> fast convergence, no saturation on the positive side.",
-        "ReLU can 'die' (always output 0 if it gets stuck negative); variants like Leaky ReLU fix that.",
-        "Typical result: ReLU converges fastest, Tanh next, Sigmoid slowest; final accuracy is close on a simple task like MNIST.",
-        "Use ReLU for hidden layers by default; sigmoid/softmax are mainly for output layers (probabilities).",
-    ])
 
 
 if __name__ == "__main__":

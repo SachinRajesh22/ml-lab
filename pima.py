@@ -66,9 +66,7 @@ def sigmoid(z):
 
 # ---------------------------------------------------------------- experiment 6
 def experiment_6():
-    header(6, "Logistic Regression with and without Feature Scaling - Pima Indians Diabetes")
 
-    step("1. Load the dataset (OpenML name 'diabetes' = Pima Indians)")
     df = fetch_openml("diabetes", version=1, as_frame=True).frame.copy()
     df.columns = ["Pregnancies", "Glucose", "BloodPressure", "SkinThickness", "Insulin",
                   "BMI", "DiabetesPedigreeFunction", "Age", "Outcome"]
@@ -77,7 +75,6 @@ def experiment_6():
     # df = pd.read_csv("diabetes.csv")
     print("Shape:", df.shape, "| diabetic cases:", int(df["Outcome"].sum()))
 
-    step("2. Preprocess: zeros in some columns really mean 'missing' -> replace by training median")
     zero_cols = ["Glucose", "BloodPressure", "SkinThickness", "Insulin", "BMI"]
     df[zero_cols] = df[zero_cols].replace(0, np.nan)
     print("Missing values created:\n", df[zero_cols].isnull().sum().to_string())
@@ -87,7 +84,6 @@ def experiment_6():
     X_train, X_test = imp.transform(X_train), imp.transform(X_test)
     scaler = StandardScaler().fit(X_train)
 
-    step("3. Train logistic regression WITHOUT and WITH feature scaling")
     results, preds = [], {}
     for label, (Xa, Xb) in {"Without scaling": (X_train, X_test),
                             "With scaling": (scaler.transform(X_train), scaler.transform(X_test))}.items():
@@ -99,7 +95,6 @@ def experiment_6():
         results.append({"Setting": label, **clf_scores(y_test, pred), "Solver iterations": int(model.n_iter_[0]),
                         "Time (s)": elapsed})
 
-    step("4. Metrics: accuracy, precision, recall, F1")
     print(pd.DataFrame(results).round(4).to_string(index=False))
     for label, pred in preds.items():
         print(f"\nConfusion matrix ({label})  [rows = actual 0/1, cols = predicted 0/1]\n", confusion_matrix(y_test, pred))
@@ -108,14 +103,6 @@ def experiment_6():
     res.plot.bar(figsize=(8, 4.5), rot=0, ylim=(0, 1), title="Logistic regression: scaling vs no scaling")
     save_show("exp6_scaling_effect.png")
 
-    explain([
-        "Logistic regression: p(y=1|x) = sigmoid(w.x + b); trained by minimising the log-loss.",
-        "Features here have very different ranges (Insulin ~ hundreds, DiabetesPedigree ~ 0.5).",
-        "Scaling mostly changes HOW FAST the optimiser converges (see 'Solver iterations'), not the best possible model.",
-        "Scaling also puts weights on a comparable scale, and is essential when regularisation is used.",
-        "Accuracy alone can mislead on imbalanced data: look at recall (how many diabetics we catch) and precision.",
-        "F1 = harmonic mean of precision and recall.",
-    ])
 
 
 if __name__ == "__main__":

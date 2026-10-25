@@ -170,9 +170,7 @@ def make_synthetic_customers(n=3000, seed=RANDOM_STATE):
 
 
 def experiment_9():
-    header(9, "Decision Tree (ID3 from scratch) - Customer segmentation, Online Retail")
 
-    step("1. Load the dataset")
     cust = load_online_retail()
     if cust is None:
         print("!! 'Online Retail.xlsx' not found -> using a SYNTHETIC demo dataset (same columns).")
@@ -181,7 +179,6 @@ def experiment_9():
     print("Customers:", len(cust))
     print(cust.head())
 
-    step("2. Preprocess: ID3 needs CATEGORICAL features -> bin numbers into Low/Medium/High")
     tri = lambda s, labels: pd.qcut(s.rank(method="first"), q=3, labels=labels).astype(str)
     data = pd.DataFrame({
         "Recency": tri(cust["Recency"], ["Recent", "Moderate", "Old"]),
@@ -196,19 +193,16 @@ def experiment_9():
     features = [c for c in data.columns if c != "Segment"]
     train, test = train_test_split(data, test_size=0.25, stratify=data["Segment"], random_state=RANDOM_STATE)
 
-    step("3. Build the ID3 tree (information gain, max depth 4)")
     importance = {}
     tree = id3(train, features, "Segment", importance, max_depth=4)
     print_tree(tree)
 
-    step("4. Evaluate")
     pred = test.apply(lambda r: id3_predict(tree, r), axis=1)
     base = (test["Segment"] == train["Segment"].mode()[0]).mean()
     print(f"ID3 test accuracy       : {accuracy_score(test['Segment'], pred):.4f}")
     print(f"Baseline (always majority class): {base:.4f}")
     print(classification_report(test["Segment"], pred, digits=3))
 
-    step("5. Feature importance (total information gain, weighted by samples reaching the split)")
     imp = pd.Series(importance).reindex(features).fillna(0)
     imp = (imp / imp.sum()).sort_values(ascending=False)
     print(imp.round(3).to_string())
@@ -218,16 +212,6 @@ def experiment_9():
     ax[0].set_title("ID3 decision tree")
     imp.sort_values().plot.barh(ax=ax[1], title="Feature importance")
     save_show("exp9_id3_tree.png")
-
-    explain([
-        "ID3 builds the tree top-down: at each node choose the attribute with the HIGHEST INFORMATION GAIN.",
-        "Entropy H = -sum p*log2(p) measures impurity; information gain = entropy before split - weighted entropy after.",
-        "Stop when a node is pure, no features are left, or (our pre-pruning) depth/size limits are hit.",
-        "ID3 handles only categorical features, so numeric columns were binned (Low/Medium/High).",
-        "The attribute at the root is the most informative one; features used higher in the tree matter more.",
-        "Each path from root to leaf is a readable rule, e.g. 'High frequency AND many products -> High-Value'.",
-        "A fully grown tree overfits; limiting depth (pruning) improves generalisation.",
-    ])
 
 
 if __name__ == "__main__":

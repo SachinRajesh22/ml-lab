@@ -73,21 +73,17 @@ def load_auto_mpg():
 
 
 def experiment_2():
-    header(2, "Polynomial Regression - Auto MPG (mpg vs engine displacement)")
 
-    step("1. Load the dataset")
     df = load_auto_mpg()
     # ---- CSV alternative: needs columns 'displacement' and 'mpg' ----
     # df = pd.read_csv("auto-mpg.csv")
     print(df[["displacement", "mpg"]].describe().round(2))
 
-    step("2. Preprocess: drop missing rows, split")
     df = df[["displacement", "mpg"]].dropna()
     X, y = df[["displacement"]].values.astype(float), df["mpg"].values.astype(float)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=RANDOM_STATE)
     print("Rows:", len(df), "| train:", len(X_train), "| test:", len(X_test))
 
-    step("3. Fit polynomial regression of degree 1 (= plain linear) ... 6")
     degrees = [1, 2, 3, 4, 5, 6]
     models, rows = {}, []
     for d in degrees:
@@ -100,12 +96,10 @@ def experiment_2():
         rows.append({"Degree": d, "Train MSE": tr_mse, "Test MSE": te_mse, "Train R2": tr_r2, "Test R2": te_r2})
     table = pd.DataFrame(rows)
 
-    step("4. Compare with linear regression (degree 1)")
     print(table.round(3).to_string(index=False))
     best = int(table.loc[table["Test MSE"].idxmin(), "Degree"])
     print(f"\nBest degree by TEST MSE: {best}")
 
-    step("5. Visualise the polynomial fits")
     fig, ax = plt.subplots(1, 2, figsize=(13, 4.5))
     xs = np.linspace(X.min(), X.max(), 300).reshape(-1, 1)
     ax[0].scatter(X_train, y_train, s=12, alpha=0.5, label="train")
@@ -120,12 +114,6 @@ def experiment_2():
     ax[1].legend()
     save_show("exp2_polynomial_regression.png")
 
-    explain([
-        "Polynomial regression = linear regression on new features x, x^2, x^3 ... (still linear in the weights).",
-        "MPG falls with displacement in a CURVE, so degree 2-3 fits better than a straight line (underfitting).",
-        "Train error always drops as degree grows; TEST error drops and then stops improving / rises (overfitting).",
-        "Pick the degree using test (or cross-validation) error, not training error.",
-    ])
 
 
 if __name__ == "__main__":

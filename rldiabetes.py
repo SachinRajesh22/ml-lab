@@ -54,20 +54,16 @@ def reg_scores(y_true, y_pred):
 
 # ---------------------------------------------------------------- experiment 3
 def experiment_3():
-    header(3, "Ridge and Lasso Regression - Diabetes dataset")
 
-    step("1. Load the dataset (built into sklearn)")
     X, y = load_diabetes(return_X_y=True, as_frame=True)
     # ---- CSV alternative (last column = target, here called 'target'): ----
     # df = pd.read_csv("diabetes.csv"); X, y = df.drop(columns="target"), df["target"]
     print("Features:", list(X.columns), "| samples:", len(X))
 
-    step("2. Preprocess: split + standardise (regularisation needs features on the same scale)")
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=RANDOM_STATE)
     scaler = StandardScaler().fit(X_train)
     Xtr, Xte = scaler.transform(X_train), scaler.transform(X_test)
 
-    step("3. Fit Linear, Ridge (L2) and Lasso (L1); tune alpha with 5-fold cross-validation")
     ridge_grid = np.logspace(-3, 3, 40)
     lasso_grid = np.logspace(-3, 1.5, 40)
     ridge_cv = GridSearchCV(Ridge(), {"alpha": ridge_grid}, cv=5, scoring="neg_mean_squared_error").fit(Xtr, y_train)
@@ -78,14 +74,12 @@ def experiment_3():
     print(f"Best Ridge alpha = {ridge_cv.best_params_['alpha']:.4f}")
     print(f"Best Lasso alpha = {lasso_cv.best_params_['alpha']:.4f}")
 
-    step("4. Compare MSE and R2 on the test set")
     rows = []
     for name, m in models.items():
         mse, r2 = reg_scores(y_test, m.predict(Xte))
         rows.append({"Model": name, "Test MSE": mse, "Test R2": r2, "Zero coefficients": int(np.sum(m.coef_ == 0))})
     print(pd.DataFrame(rows).round(3).to_string(index=False))
 
-    step("5. Coefficients of each model")
     coefs = pd.DataFrame({n: m.coef_ for n, m in models.items()}, index=X.columns)
     print(coefs.round(2))
 
@@ -98,14 +92,6 @@ def experiment_3():
     ax[1].set(title="Coefficients: Linear vs Ridge vs Lasso", ylabel="coefficient value")
     save_show("exp3_ridge_lasso.png")
 
-    explain([
-        "Ridge adds  alpha * sum(w^2)  (L2) to the loss: it SHRINKS weights but rarely makes them exactly 0.",
-        "Lasso adds  alpha * sum(|w|)  (L1) to the loss: it can set weights EXACTLY to 0 = automatic feature selection.",
-        "alpha = 0 -> ordinary linear regression; big alpha -> weights go to 0 (underfitting).",
-        "Cross-validation: split the training data into 5 parts, train on 4, validate on 1, average -> best alpha.",
-        "Regularisation helps most when features are correlated or data is small (reduces variance/overfitting).",
-        "On this dataset all three give similar test error; the gain is in simpler, more stable models.",
-    ])
 
 
 if __name__ == "__main__":

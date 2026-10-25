@@ -48,16 +48,13 @@ def save_show(fname):
 
 # ---------------------------------------------------------------- experiment 7
 def experiment_7():
-    header(7, "Naive Bayes for Text: Multinomial vs Bernoulli - 20 Newsgroups")
 
-    step("1. Load the full 20 Newsgroups dataset")
     kw = dict(remove=("headers", "footers", "quotes"))
     train, test = fetch_20newsgroups(subset="train", **kw), fetch_20newsgroups(subset="test", **kw)
     # ---- CSV alternative: file with columns 'text' and 'label' ----
     # df = pd.read_csv("newsgroups.csv")  # then split into train/test texts and labels yourself
     print("Train docs:", len(train.data), "| test docs:", len(test.data), "| classes:", len(train.target_names))
 
-    step("2. Preprocess: bag-of-words word counts (English stop-words removed)")
     results = {}
     rows = []
     for vocab_size in [500, 2000, 5000, 20000]:
@@ -73,11 +70,9 @@ def experiment_7():
             if vocab_size == 20000:
                 results[name] = pred
 
-    step("3. Compare accuracy and F1 for several vocabulary sizes")
     table = pd.DataFrame(rows)
     print(table.round(4).to_string(index=False))
 
-    step("4. Detailed report for the largest vocabulary (20000 words)")
     for name, pred in results.items():
         print(f"\n--- {name} ---")
         print(classification_report(test.target, pred, target_names=train.target_names, digits=3))
@@ -94,14 +89,6 @@ def experiment_7():
     plt.colorbar(im, ax=ax[1])
     save_show("exp7_naive_bayes.png")
 
-    explain([
-        "Naive Bayes uses Bayes' rule with the 'naive' assumption that words are independent given the class.",
-        "MULTINOMIAL NB models word COUNTS (how many times each word appears) -> uses term frequency.",
-        "BERNOULLI NB models word PRESENCE/ABSENCE (0/1) and also penalises words that are absent.",
-        "Multinomial usually wins on longer documents and big vocabularies; Bernoulli is OK for short texts / small vocabularies.",
-        "Both are very fast, need little data, and give a strong baseline; the independence assumption is unrealistic.",
-        "alpha=1 is Laplace smoothing (see Experiment 5): it avoids zero probabilities for unseen words.",
-    ])
 
 
 if __name__ == "__main__":
